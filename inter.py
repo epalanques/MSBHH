@@ -7,7 +7,7 @@ import pandas
 import matplotlib.pyplot as plt
 
 
-class Example(QMainWindow):
+class Inter(QMainWindow):
 
     def __init__(self):
         super().__init__()
@@ -174,7 +174,7 @@ class Example(QMainWindow):
         
 if __name__=="__main__":
     app = QApplication(sys.argv)
-    ex = Example()
+    ex = Inter()
     ex.show()
     sys.exit(app.exec_())
 
