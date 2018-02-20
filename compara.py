@@ -7,9 +7,7 @@ import difflib
 import xlsxwriter
 
 
-##*************************************ATENCIO: FER UNA CLASSE QUE HERETA DE COBRA.REACTIONS AMB EL FLUX*****
-
-#  #  model = cobra.io.read_sbml_model("pyogenes.xml")
+#  model = cobra.io.read_sbml_model("pyogenes.xml")
 
 def trouverEchanges (diete, modele, d = {}, ldiet_out = [], lmod_out = []):
 
