@@ -6,72 +6,118 @@ import pandas
 import difflib
 import xlsxwriter
 
-def comparer(diet = "", model= "", d = {}, ldiet_out = [], lmod_out = []):
-    #a canviar diet i model
-    ldiet_in = []
-    lmod_in = []
-    df = pandas.read_excel(diet)
+
+##*************************************ATENCIO: FER UNA CLASSE QUE HERETA DE COBRA.REACTIONS AMB EL FLUX*****
+
+#  #  model = cobra.io.read_sbml_model("pyogenes.xml")
+
+def trouverEchanges (diete, modele, d = {}, ldiet_out = [], lmod_out = []):
+
+    #imports
+    df = pandas.read_excel(diete)            #Importation de la diete
+
+    # inicialisacion des variables
     ids = df['reaction'].values
     fluxes = df['fluxValue'].values
-    values = []
-    print("En Compara:")
-    print(model)
-    print(diet)
-    print(len(d))
-    for i in range(len(fluxes)-1):
-        values.append((ids[i],fluxes[i]))
-    model = cobra.io.read_sbml_model(model)
-    for val in values:
-        v = val[0]
-        f = val[1]
-        l1 = v.split("_")
-        ns1 = "".join(l1) #il efface les _
-        if ns1.startswith("EX"): #ns1: reactions de la diete qui commençont par "EX"
-            for rec in model.reactions:
-                if rec.id.startswith("EX"):
-                    l = rec.id.split("_")
-                    l2 = treupar(l)#il change LPAREN par ( et RPAREN par ) 
-                    ns = "".join(l2) #il efface les _
-                    if ns.startswith(ns1):
-                        d[v] = [rec.id, rec.reaction, rec.name, f]
-                        lmod_in.append(rec.id)
-                        ldiet_in.append(v)
-                        for val in values:
-                            if val[0] not in ldiet_in:
-                                ldiet_out.append(val)
-    for rec in model.reactions: #totes les reaccions
-        if rec.id.startswith("EX"): #reaccions del model que comencen amb EX
-            if rec.id not in lmod_in:
-                lmod_out.append((rec.id, rec.reaction,rec.name))
-    print(model.optimize().f)
-    return (d,ldiet_out,lmod_out)
 
-def modifier(d, model):
-    model = cobra.io.read_sbml_model(model)
-    for key in d:
-        try:
-            pgi = model.reactions.get_by_id(d[key][0])
-            bound =d[key][3]
-            #print(pgi.lower_bound)
-            #print(pgi.upper_bound)
-            pgi.lower_bound = - bound
-            pgi.upper_bound = 0
-            #print(pgi.lower_bound)
-            #print(pgi.upper_bound)
-        except KeyError:
-            pass
-    print(len(d))
-    print("fi main")
-    return model.optimize().f
-        
-    
-def treupar(ll):
-    for i in range(len(ll)):
-        if ll[i] == "LPAREN":
-            ll[i] = "("
-        if ll[i] == "RPAREN":
-            ll[i] = ")"
-    return ll
+    ldiet_in = []
+    lmod_in = []
+
+    echangesDiet = []
+    echangesModele = []
+
+
+    # obtention de la liste des reactions d'echange de la diete
+    for i in range(len(fluxes)-1):
+        reacIdDiet = ids[i]
+        flux = fluxes[i]
+
+        if reacIdDiet.startswith("EX"):
+
+            #On ajoute l'identifiant propre à la liste
+            idPropreDiete = traitement(reacIdDiet)
+            echangesDiet.append((idPropreDiete, reacIdDiet, flux))
+
+    # obtention de la liste des reactions d'echange du modele
+    for rec in modele.reactions:
+
+        #Obtention des reactions d'echange
+        if rec.id.startswith("EX"):
+
+            #Ona ajoute l'identifiant propre à la liste
+            idPropreModele = traitement(rec.id)
+            echangesModele.append((rec, idPropreModele))
+
+    return echangesModele, echangesDiet
+
+def comparerEchanges (echangesModele, echangesDiet):
+
+    #Inicialisation des variables
+    correspondances = {}
+    nonCorrespondantsDiete = []
+    nonCorrespondantsModele = []
+    reactionsModelAjoutees= []
+
+    #Comparation d'identifiants
+    for reacEchangeDiet in echangesDiet:
+        idPropreDiet = reacEchangeDiet[0]
+        idDiet = reacEchangeDiet[1]
+        flux = reacEchangeDiet[2]
+
+        correspondance_trouve = False
+
+        for reacEchangeModele in echangesModele:
+            idPropreModel = reacEchangeModele[1]
+            reaction = reacEchangeModele[0]
+
+            if idPropreDiet.startswith(idPropreModel):
+                #Correspondence entre identifiants
+                    #Creation du dictionnaire
+                correspondances[idDiet] = [reaction, flux]
+
+                correspondance_trouve = True
+                reactionsModelAjoutees.append(reaction)
+
+        if not correspondance_trouve:
+            #on ajoute reactions de la diete qui n'ont pas trouve un correspondant
+            nonCorrespondantsDiete.append((idPropreDiet, idDiet))
+
+    for reacEchangeModele in echangesModele:
+        if reacEchangeModele[1] not in reactionsModelAjoutees:
+            #on ajoute les reactions du modele qui n'ont pas trouve un correspondant
+            nonCorrespondantsModele.append(reaction)
+
+    return (correspondances, nonCorrespondantsModele, nonCorrespondantsDiete)
+
+
+def modifierFluxes (correspondances):
+
+    for reactionID in correspondances:
+        reaction = correspondances[reactionID][0]
+        flux = correspondances[reactionID][1]
+        reaction.lower_bound = - flux
+        reaction.upperbound = 0
+
+    return
+
+
+def traitement(mot):
+    #fonction pour traiter les mots
+    #On peut ajouter plus de modifications pour identifiants plus diferents
+
+    #On supprime les "_" et les "(" ")"
+    elem = mot.split("_")
+
+    for i in range(len(elem)):
+        if elem[i] == "LPAREN":
+            elem[i] = "("
+        if elem[i] == "RPAREN":
+            elem[i] = ")"
+
+    mot = "".join(elem)
+
+    return mot
+
     
 #def bounds(d):
 #    df = pandas.read_excel("fluxes.xls")
@@ -81,62 +127,56 @@ def treupar(ll):
     #return model
               
     
-def differences_xls(d, ldiet,lmodel):
+def nonCorrespondants_xls(nonCorrespondantsDiete, nonCorrespondantsModele):
+    #creacion de l'excel
     workbook = xlsxwriter.Workbook("differences.xlsx")
     worksheet = workbook.add_worksheet()
-    model = cobra.io.read_sbml_model("pyogenes.xml")
+
+    #on ajoute les titres de colonnes
     worksheet.write(0,0,"DIETE")
     worksheet.write(0,2,"MODELE_ID")
     worksheet.write(0,3,"MODELE_NAME")
-    worksheet.write(0,4,"MODELE_REACTIONS")
+    worksheet.write(0,4,"MODELE_REACTION")
+
+    #On ajoute les nonCorrespondants de la diete
     row = 1
-    for die in ldiet:
-        if die in d:
-            print("erreur")
-        print("aqui:")
-        print(die)
-        worksheet.write(row,0, die[0])
+    for reaction in nonCorrespondantsDiete:
+        worksheet.write(row, 0, reaction[1])
         row = row+1
+
+    #On ajoute les nonCorrespondants du modele
     row = 1
-    for m in lmodel:
-        for k in d:
-            if m in d[k]:
-                print("erreur")
-                print(m[0])
-        worksheet.write(row,2, m[0])
-        worksheet.write(row,3, m[1])
-        worksheet.write(row,4, m[2])
+    for reaction in nonCorrespondantsModele:
+        worksheet.write(row, 2, reaction.id)
+        worksheet.write(row, 3, reaction.name)
+        worksheet.write(row, 4, reaction.reaction)
         row = row+1
+
+    #fermeture de l'xls
     workbook.close()
 
-def dictionaire_xls(d):
+def correspondants_xls(correspondants):
+
+    #ouverture de l'xls
     workbook = xlsxwriter.Workbook("dictionaire.xlsx")
     worksheet = workbook.add_worksheet()
-    model = cobra.io.read_sbml_model("pyogenes.xml")
-    worksheet.write(0,0,"DIETE")
-    worksheet.write(0,1,"MODELE_ID")
-    worksheet.write(0,2,"REACTION")
-    worksheet.write(0,3,"MODELE_NOM")
-    worksheet.write(0,4,"FLUX")
-    row = 1
-    for k in d:
-        print(k)
-        worksheet.write(row,0,k)
-        worksheet.write(row,1,d[k][0])
-        worksheet.write(row,2,d[k][1])
-        worksheet.write(row,3,d[k][2])
-        worksheet.write(row,4,d[k][3])
-        row = row+1
-    workbook.close()
 
-def maxflux(m):
-    l = []
-    mf = []
-    for rec in m:
-        l.append(rec.flux)
-    for i in range(len(l)):
-        if i<5:
-            mf.append(l[i])
-        else:
-            if l[i]>min(mf):
-                mf.pop
+    #on met les titres des colonnes
+    worksheet.write(0,0,"DIETE_ID")
+    worksheet.write(0,1,"MODELE_ID")
+    worksheet.write(0,2,"MODELE_NAME")
+    worksheet.write(0,3,"MODELE_REACTION")
+    worksheet.write(0,4,"FLUX")
+
+    #on ajoute les valeurs du dictionaire
+    row = 1
+    for reaction in correspondants:
+        worksheet.write(row,0,reaction) #dieteID
+        worksheet.write(row,1,correspondants[reaction][0].id) #modeleID
+        worksheet.write(row,2,correspondants[reaction][0].name) #modeleName
+        worksheet.write(row,3,correspondants[reaction][0].reaction) #modeleReaction
+        worksheet.write(row,4,correspondants[reaction][1]) #flux
+        row = row+1
+
+    #fermeture de l'excel
+    workbook.close()
