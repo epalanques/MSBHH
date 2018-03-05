@@ -11,7 +11,14 @@ def reactionex(model):
   for rec in model.reactions: 
     if rec.id.startswith("EX"): 
       l.append((rec.id, rec.reaction,rec.name))
-      return l
+  return l
       
-def rename(model):
+def rename_1(model):
+  for rec in model.metabolites:
+    rec.id=rec.id+"_1"
+  return model
   
+def rename_2(model):
+  for rec in model.metabolites:
+    rec.id=rec.id+"_2"
+  return model
