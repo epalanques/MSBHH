@@ -6,9 +6,8 @@ Created on Sun Mar  4 19:20:36 2018
 @author: Romain GUEDON
 """
 import cobra.test
-mini=cobra.test.create_test_model("mini")
 
-#Fonction principale
+
 def fusion(OldModelList):
     '''
     --Parameters--
@@ -100,13 +99,15 @@ def fusion(OldModelList):
         #Ajout des réaction "pool_xxx_e <-> " que l'on identifient par "pool_xxx"
         #RQ: si la réaction existe déjà, cobrapy ne l'ajoute pas deux fois donc pas de soucis de doublons.
         poolReac = Reaction('pool_'+rootMetabtemp.id)
-        poolReac.name='Reaction : '+rootMetabtemp.id+'_pool <->'
+        poolReac.name='Reaction controle : '+rootMetabtemp.id+'_pool <->'
         poolReac.subsystem = 'pool'
-        #Bounds will be set by the diet.
+        poolReac.lower_bound=-1000
+        poolReac.upper_bound=1000
         poolReac.add_metabolites({
             poolMetab : -1.0
         })
         NewModel.add_reactions([poolReac])
     return NewModel
 
-fusion([mini,mini]).reactions
+
+
