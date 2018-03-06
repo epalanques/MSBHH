@@ -12,6 +12,10 @@ from fusion import fusion
 from changerFluxes import changerFluxes
 import matplotlib.pyplot as plt
 from cobra import Model, Reaction, Metabolite
+from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
+
+import cobra.test
+mini=cobra.test.create_test_model("mini")
 
 def main(model1,model2,diet,resolution):
     '''
@@ -22,26 +26,47 @@ def main(model1,model2,diet,resolution):
     alphaList=[k/resolution for k in range(resolution+1)]
     biomassList=[]
     fusionModel=fusion([model1,model2])
+    #changerFluxes(diet,fusionModel)
     #biomass2List=[]
+    
+    #Get the biomass reactions by this way:
+    ObjectiveReactionsModel1=linReaCoeff(model1)
+    for item in ObjectiveReactionsModel1.keys():
+        ObjReac=item
+#    for value in ObjectiveReactionsModel1.values():
+#        ObjValue=value
+        
     for alpha in alphaList:
-        
         fusionModel.objective= alpha*model1.objective.expression + (1-alpha)*model2.objective.expression
-        print(fusionModel.optimize())
-        changerFluxes(diet,fusionModel)
-        fusionModel.optimize()
-        #biomass1= IL FAUT RETROUVER LA VALEUR DE LA BIOMASS1
+        print(fusionModel.objective.expression)
+        opt=fusionModel.optimize()
+        biomassList.append(opt.fluxes[ObjReac.id+"_0"])# Adding "_0" because of the fusion that renammed the reactions with the index 0 for the model1 (index)
         
-        
-    #plt.plot(alphaList,biomass1List)
+    #plt.plot(alphaList,biomassList)
+    return(biomassList[0])
 
-main(mini,mini,"vegan_diet.xls",1)
+#dict1=dict({"Key1" : "Value1"})
+#print(dict1.__getitem__("Key1"))
+
+#mini=changerFluxes("vegan_diet.xls",mini)
+optmini=mini.optimize()
+print(optmini.fluxes.keys())
+main(mini,mini,"vegan_diet.xls",4)
 
 
 
 model1=cobra.io.read_sbml_model("./Models/Bacteroides_sp_1_1_14.xml")
 model2=cobra.io.read_sbml_model("./Models/Bacteroides_fragilis_3_1_12.xml")
+main(model1,model2,"vegan_diet.xls",1)
 
+#TEST##
 
-
+model1=cobra.io.read_sbml_model("./Models/Bacteroides_sp_1_1_14.xml")
+ObjectiveReactionsModel1=linReaCoeff(model1)
+for item in ObjectiveReactionsModel1.keys():
+    ObjReac=item
+ObjReac
+opt1=model1.optimize()
+opt1.fluxes[ObjReac.id]
 
 
