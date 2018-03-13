@@ -25,12 +25,16 @@ def rename_2(model):
     rec.id=rec.id+"_2"
   return model
 
-def compareaction(model1, model2):
+def compareaction(model1, model2, seuil):
+  #seuil est une nombre de réactions minimales communes pour qu'on puisse considérer que les deux modèles peuvent interagir et méritent une étude plus approfondie
     listecommune=[]
-    count=0
+    nb_reactions_communes=0
     for i in range (len(reactionex(model1)[0])):
         if reactionex(model1)[0][i] in reactionex(model2)[0]:
             listecommune.append(reactionex(model1)[0][i])
-            count+=1
-    return ("Les modèles "+str(model1.id)+" et "+str(model2.id)+" partagent "+str(count)+" réactions d'échange avec l'extérieur : "+str(listecommune))
-
+            nb_reactions_communes+=1
+    if nb_reactions_communes >= seuil :
+      return True #les deux modèles peuvent interagir et leur interaction vaut la peine d'être étudiée
+    else: 
+      return False #le nombre de reactions communes aux 2 modèles est trop faible, on n'étudie donc pas leur comparaison
+    
