@@ -106,8 +106,10 @@ def fusion(OldModelList):
         poolReac.add_metabolites({
             poolMetab : -1.0
         })
-        NewModel.add_reactions([poolReac])
+        if not(poolReac in NewModel.reactions):
+            NewModel.add_reactions([poolReac])
     return NewModel
 
-
+mini=cobra.test.create_test_model("mini")
+fusion([mini,mini]).reactions
 
