@@ -2,21 +2,73 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Mar  4 19:20:36 2018
+<<<<<<< HEAD
 
 @author: Romain GUEDON
 """
 import cobra.test
+=======
+@author: Romain GUEDON
+"""
+import cobra.test
+from cobra import Model, Reaction, Metabolite
+
+def finderOfEX(model):
+    '''
+    Return a dictList of cobra reactions starting with EX
+    '''
+    res=[]
+    for x in model.reactions:
+        if type(x.id)==type("string") and x.id.startswith("EX"): 
+            res.append(x.id)
+    return res
+
+def nameChange(model,indice):
+    '''
+        Returns a copy of the model with Name, Metabolites and Reactions  
+        renamed with the indice! (Genes are not)
+    '''
+    indice=str(indice)
+    NewModel=model.copy()
+    if type(NewModel.name)==type("string"):
+        NewModel.name=NewModel.name+"_"+indice
+    else:
+        NewModel.name="ModelWithoutName"+indice
+    for reac in NewModel.reactions:
+        reactionNameChange(reac,indice)
+    for metab in NewModel.metabolites:
+        metaboliteNameChange(metab,indice)
+    return NewModel
+
+def reactionNameChange(reac,indice):
+    reac.id=reac.id+"_"+indice
+    if type(reac.name)==type("string"):
+        reac.name=reac.name+"_"+indice
+    if type(reac.subsystem)==type("string"):
+        reac.subsystem=reac.subsystem+"_"+indice
+
+def metaboliteNameChange(metab,indice):
+    metab.id=metab.id+"_"+indice
+    if type(metab.name)==type("string"):
+        metab.name=metab.name+"_"+indice
+    if type(metab.compartment)==type("string"):
+        metab.compartment=metab.compartment+"_"+indice    
+>>>>>>> 24ee9bd5b494193d8925f8d5180792a240a3bc0d
 
 
 def fusion(OldModelList):
     '''
     --Parameters--
+<<<<<<< HEAD
 
+=======
+>>>>>>> 24ee9bd5b494193d8925f8d5180792a240a3bc0d
     modelList est une liste de modèles. En pratique de longueur 2 ou 3
     
     --Return--
     Return the fusion of the models 
     '''
+<<<<<<< HEAD
 #Sub-fonctions
     def nameChange(model,indice):
         '''
@@ -57,6 +109,8 @@ def fusion(OldModelList):
     #Importation
     from cobra import Model, Reaction, Metabolite
     
+=======
+>>>>>>> 24ee9bd5b494193d8925f8d5180792a240a3bc0d
     #Initialisation
     NewModel = cobra.Model("Fusion des modèles !")
     modelList=[]
@@ -110,6 +164,11 @@ def fusion(OldModelList):
             NewModel.add_reactions([poolReac])
     return NewModel
 
+<<<<<<< HEAD
 mini=cobra.test.create_test_model("mini")
 fusion([mini,mini]).reactions
+=======
+#mini=cobra.test.create_test_model("mini")
+#fusionModel=fusion([mini,mini])
+>>>>>>> 24ee9bd5b494193d8925f8d5180792a240a3bc0d
 
