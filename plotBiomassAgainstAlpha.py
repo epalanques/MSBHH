@@ -2,42 +2,48 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar  5 10:19:05 2018
-
 @author: Romain GUEDON
-
 Compare the value of the biomass of a model with another pre-selected model
 """
 
-from fusion import fusion 
-from changerFluxes import changerFluxes
+from fusion import *
+from changerFluxes import *
 import matplotlib.pyplot as plt
-from cobra import Model, Reaction, Metabolite
+from cobra import *
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
 import pandas as pd
 import cobra.test
+
 mini=cobra.test.create_test_model("mini")
 model1=cobra.io.read_sbml_model("./Models/Bacteroides_sp_1_1_14.xml")
 model2=cobra.io.read_sbml_model("./Models/Actinomyces_georgiae_DSM_6843.xml")
 
-def main(model1,model2,diet,nbPoints=2):
+main(mini,mini,"vegan_diet.xls",2)
+
+def main(oldModel1,oldModel2,diet,nbPoints=2):
     '''
-    model1,model2 : two cobra.Model object
+    oldModel1,oldModel2 : two cobra.Model object
     diet: path of the file diet.xml containing the diet
     resolution: number of points 
     '''
     alphaList=[k/(nbPoints-1) for k in range(nbPoints)]#distributed btw 0 & 1
     biomass1List=[]#will contain biomass values of model1
     biomass2List=[]
+    model1=oldModel1.copy()
+    model2=oldModel2.copy()
+    #On récupère les réactions de biomasses et on modifie le nom comme dans l'algo de fusion:
     ObjReac1=getBiomassReaction(model1)#ObjReac1 is a cobra reaction
     ObjReac2=getBiomassReaction(model2)
-    fusionModel=fusion([model1,model2])
+    objectiveTransformation(ObjReac1,"test")
+    objectiveTransformation(ObjReac2,"test2")
+    print(ObjReac1.metabolites)
+    fusionModel=fusion([model1,model2])  
+    print(ObjReac1.metabolites)
     #set the diet for each models:
-    changerFluxes(diet,model1)
-    changerFluxes(diet,model2)
     changerFluxes(diet,fusionModel)
     #Compute optimal biomass value for the given diet:
-    optBiomass1=model1.optimize().f
-    optBiomass2=model2.optimize().f
+    optBiomass1=getOptimalBiomass(diet,model1)
+    optBiomass2=getOptimalBiomass(diet,model2)
     #Proceed computation:
     for alpha in alphaList:
         objectiveModification(fusionModel,ObjReac1,ObjReac2,optBiomass1,optBiomass2,alpha)
@@ -48,6 +54,15 @@ def main(model1,model2,diet,nbPoints=2):
     #Affichage
     AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2)
     
+def getOptimalBiomass(diet,model):    
+    changerFluxes(diet,model)
+    return model.optimize().f
+
+def objectiveTransformation(ObjReac,indice):
+    reactionNameChange(ObjReac,indice)
+    for metab in ObjReac.metabolites:
+        metaboliteNameChange(metab,indice)
+        
 
 def objectiveModification(fusionModel,ObjectiveReac1,ObjectiveReac2,optBiomass1,optBiomass2,alpha):
     '''
@@ -61,8 +76,10 @@ def objectiveModification(fusionModel,ObjectiveReac1,ObjectiveReac2,optBiomass1,
     objectiveFusion[ObjectiveReac1]=alpha/optBiomass1
     objectiveFusion[ObjectiveReac2]=(1-alpha)/optBiomass2
     fusionModel.objective=objectiveFusion
-    #print("\n Expression de l'objectif: \n ")
-    #print(fusionModel.objective.expression)
+    print("\n Expression de l'objectif: \n ")
+    print(fusionModel.objective.expression)
+    print("\n Expression de la biomass1: \n")
+    print(ObjectiveReac1.id)
     return fusionModel
 
 def getBiomassReaction(model):
@@ -95,25 +112,23 @@ def AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2):
 
 
     
-
-ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
-print(ListOfModels)
-ListOfModels[0][0]
-type(ListOfModels)
-for i in range(5,10):
+def TestOnModelsIJ(i,j):
+    ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
     model1Name="./Models/"+ListOfModels[i][0]
-    model2Name="./Models/"+ListOfModels[i+1][0]
+    model2Name="./Models/"+ListOfModels[j][0]
     model1=cobra.io.read_sbml_model(model1Name)
     model2=cobra.io.read_sbml_model(model2Name)
     main(model1,model2,"vegan_diet.xls",2)
-#main(mini,mini,"vegan_diet.xls",5)
-
-print("Test de l'inversion model1/model2: ")
-model1Name="./Models/"+ListOfModels[0][0]
-model2Name="./Models/"+ListOfModels[1][0]
-model1=cobra.io.read_sbml_model(model1Name)
-model2=cobra.io.read_sbml_model(model2Name)
-main(model1,model2,"vegan_diet.xls",2)
-main(model2,model1,"vegan_diet.xls",2)
+    
 
 
+
+# =============================================================================
+# print("Test de l'inversion model1/model2: ")
+# model1Name="./Models/"+ListOfModels[0][0]
+# model2Name="./Models/"+ListOfModels[1][0]
+# model1=cobra.io.read_sbml_model(model1Name)
+# model2=cobra.io.read_sbml_model(model2Name)
+# main(model1,model2,"vegan_diet.xls",2)
+# main(model2,model1,"vegan_diet.xls",2)
+# =============================================================================
