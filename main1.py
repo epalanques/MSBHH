@@ -15,3 +15,9 @@ def changerFluxes(diete, modele):
 
 
     
+def listeDietes():
+    diets = []
+    for i in range(10):
+        s = "d" + str(i+1) + ".xls"
+        diets.append(s)
+    return diets

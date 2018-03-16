@@ -2,7 +2,7 @@ from PyQt5 import QtGui, QtWidgets, QtPrintSupport
 from PyQt5.QtWidgets import (QMainWindow, QTextEdit, QAction, qApp, QFileDialog, QApplication, QTableWidget, QTableWidgetItem, QVBoxLayout, QHeaderView)
 from PyQt5.QtGui import QIcon
 import sys
-import main
+import main1
 import pandas
 import matplotlib.pyplot as plt
 
@@ -99,26 +99,39 @@ class Inter(QMainWindow):
         self.Equi = True
         
     def go(self):
-        self.df = main.main(self.diets, self.models, self.Dict, self.Equi)
+
+        #Execution du main1.
+        #df est donc une matrice avec les biomasses de chaque modele en fonction de chaque diete
+        self.df = main1.main1(self.diets, self.models)
+
+        #On recupere les titre de la dataFrame, c'est à dire les dietes et le modeles
         mod = list(self.df)
         die = list(self.df.index)
-        print(self.df)
+
+        #Inicialisation du Widget framedate de l'aplication
         self.datatable.setColumnCount(len(self.df.columns)+1)
         self.datatable.setRowCount(len(self.df.index)+1)
+
+        #Inicialisation du system de buttons: quand tu click dans un button de la framedate, le graphe est montré.
         self.buttons = []
+
         k = 0
+
         for i in range(len(die)):
-            print("d:" + str(i))
-            #posem el titol de les files
+
+            #on met un titre aux files (dietes)
             Vheader = QTableWidgetItem(die[i])
             self.datatable.setVerticalHeaderItem(i, Vheader)
 
             for j in range(len(mod)):
-                #posar l'element
+                #On met le titre à la colonne (le modele)
+                self.datatable.setHorizontalHeaderItem(j,QTableWidgetItem(mod[j]))
+
+                #On ajoute l'element (la biomasse)
                 n = QTableWidgetItem(str(self.df.get_value(die[i],mod[j])))
                 self.datatable.setItem(i,j,n)
-                #posar el titol a la columna
-                self.datatable.setHorizontalHeaderItem(j,QTableWidgetItem(mod[j]))                
+
+            #On ajoute les buttons aux files
             self.buttons.append(k)
             self.buttons[k]=QtWidgets.QPushButton('dGraph')
             self.buttons[k].clicked.connect(self.dGraphiquer)
@@ -126,6 +139,7 @@ class Inter(QMainWindow):
             header = self.datatable.horizontalHeader()
             k = k+1
 
+        #On ajoute les buttons aux colonnes
         for j in range(len(mod)):
             self.buttons.append(k)
             self.buttons[k]=QtWidgets.QPushButton('mGraph')
@@ -133,18 +147,17 @@ class Inter(QMainWindow):
             self.datatable.setCellWidget(len(die),j,self.buttons[k])
             k = k+1
 
+        #On resize le Widget
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         for i in range(1, len(mod)):
             header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
             header.setStretchLastSection(True)
 
     def mGraphiquer(self):
+        #Button: il te montre le graphe de la celle de la FrameDate où il est
+
         buttonClicked = self.sender()
         index = self.datatable.indexAt(buttonClicked.pos())
-        print("BIOOO")
-        print(index.row())
-        print(index.column())
-        print("STIIIC")
         nd = {}
         mod = list(self.df)
         die = list(self.df.index)
