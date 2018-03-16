@@ -4,6 +4,7 @@
 Created on Sun Mar  4 19:20:36 2018
 @author: Romain GUEDON
 """
+#%%
 import cobra.test
 from cobra import Model, Reaction, Metabolite
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
@@ -15,11 +16,11 @@ def getBiomassReaction(model):
     return reac
 
 def getBiomassReactionV2(model):
-    reac=Reaction()
+    reactions=[]
     objReactions=linReaCoeff(model)
     for item in objReactions:#works with only one biomass reaction !
-        reac=item
-    return reac
+        reactions.append(item)
+    return reactions
 
 def finderOfEX(model):
     '''
@@ -122,15 +123,21 @@ def fusion(oldModelList):
         if not(poolReac in NewModel.reactions):
             NewModel.add_reactions([poolReac])
     #Objective modification
-    ObjReacList=dict()
-    j=0
+    ObjReactions=[]
     for model in modelList:
-        BiomassReac=getBiomassReaction(model)#Return only one of several reactions in model objective
-        ObjReacList[BiomassReac]=1.0
-        j+=1
-    NewModel.objective=ObjReacList
+        ObjReactions+=getBiomassReactionV2(model)
+    temp=NewModel.reactions.get_by_id(ObjReactions[0].id).flux_expression   
+    for reaction in ObjReactions[1:]:
+        temp+=NewModel.reactions.get_by_id(reaction.id).flux_expression
+    NewModel.objective = NewModel.problem.Objective(temp)
+    print("\nobjective of the fusion: ")
+    print(NewModel.objective.expression)
     return NewModel
+#%%
+Validation3()
+#%%
 
+#%%
 model1=cobra.io.read_sbml_model("./Models/Actinomyces_georgiae_DSM_6843.xml")
 fusion([model1,model1])
 mini=cobra.test.create_test_model("mini")
@@ -138,7 +145,7 @@ fusionModel=fusion([model1,mini])
 fusionModel.objective.expression
 model1.objective.expression
 mini.objective.expression
-
+#%%
 def Validation(mini,reaction):
     print("Expression de l'objectif au début: ")
     print(mini.objective.expression)
@@ -164,7 +171,8 @@ def Validation2(oldmodel):
     print(linReaCoeff(model))   
     
 def Validation3():
+    print("\nmodel1 objective expression: ")
     print(model1.objective.expression)
+    print("\nmini objective expression: ")
     print(mini.objective.expression)
-    print(fusion([mini,model1]).objective.expression)
-    
+    fusion([mini,model1])
