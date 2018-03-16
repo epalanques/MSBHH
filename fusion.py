@@ -6,6 +6,20 @@ Created on Sun Mar  4 19:20:36 2018
 """
 import cobra.test
 from cobra import Model, Reaction, Metabolite
+from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
+
+def getBiomassReaction(model):
+    objReactions=linReaCoeff(model)
+    for item in objReactions:#works with only one biomass reaction !
+        reac=item
+    return reac
+
+def getBiomassReactionV2(model):
+    reac=Reaction()
+    objReactions=linReaCoeff(model)
+    for item in objReactions:#works with only one biomass reaction !
+        reac=item
+    return reac
 
 def finderOfEX(model):
     '''
@@ -17,13 +31,15 @@ def finderOfEX(model):
             res.append(x.id)
     return res
 
-def nameChange(model,indice):
+def nameChange(NewModel,indice):
     '''
-        Returns a copy of the model with Name, Metabolites and Reactions  
+        Change the model with Name, Metabolites and Reactions  
         renamed with the indice! (Genes are not)
+        
+        indice: integer
+        NewModel: cobra.Model
     '''
     indice=str(indice)
-    NewModel=model.copy()
     if type(NewModel.name)==type("string"):
         NewModel.name=NewModel.name+"_"+indice
     else:
@@ -32,7 +48,7 @@ def nameChange(model,indice):
         reactionNameChange(reac,indice)
     for metab in NewModel.metabolites:
         metaboliteNameChange(metab,indice)
-    return NewModel
+    
 
 def reactionNameChange(reac,indice):
     reac.id=reac.id+"_"+indice
@@ -49,7 +65,7 @@ def metaboliteNameChange(metab,indice):
         metab.compartment=metab.compartment+"_"+indice    
 
 
-def fusion(OldModelList):
+def fusion(oldModelList):
     '''
     --Parameters--
     modelList est une liste de modèles. En pratique de longueur 2 ou 3
@@ -60,18 +76,15 @@ def fusion(OldModelList):
     #Initialisation
     NewModel = cobra.Model("Fusion des modèles !")
     modelList=[]
-    
-    #Change Name:
+    for old in oldModelList:
+        modelList.append(old.copy())
+    #Change Name and add reactions (and metabolites, genes...) in the NewModel
     i=0
-    for old_model in OldModelList:
-        modelList.append(nameChange(old_model,i))
-        i+=1
-        
-    #Ajout de toutes les réactions dans le nouveau modèle : 
     for model in modelList:
-        NewModel.add_reactions(model.reactions)
-    
-    
+        nameChange(model,i)
+        NewModel.add_reactions(model.copy().reactions)
+        i+=1
+
     #Modification des réactions EX comme décrit:
     EX_ReactionsModif=[]
     for model in modelList:#On récupère des réactions modifiées
@@ -108,8 +121,50 @@ def fusion(OldModelList):
         })
         if not(poolReac in NewModel.reactions):
             NewModel.add_reactions([poolReac])
+    #Objective modification
+    ObjReacList=dict()
+    j=0
+    for model in modelList:
+        BiomassReac=getBiomassReaction(model)#Return only one of several reactions in model objective
+        ObjReacList[BiomassReac]=1.0
+        j+=1
+    NewModel.objective=ObjReacList
     return NewModel
 
-#mini=cobra.test.create_test_model("mini")
-#fusionModel=fusion([mini,mini])
+model1=cobra.io.read_sbml_model("./Models/Actinomyces_georgiae_DSM_6843.xml")
+fusion([model1,model1])
+mini=cobra.test.create_test_model("mini")
+fusionModel=fusion([model1,mini])
+fusionModel.objective.expression
+model1.objective.expression
+mini.objective.expression
 
+def Validation(mini,reaction):
+    print("Expression de l'objectif au début: ")
+    print(mini.objective.expression)
+    linReaResult=linReaCoeff(mini)
+    print("le résultat de linReaCoeff est : ")
+    print(linReaResult)
+    linReaResult[reaction]=1.0
+    print("Après modif, linReaCoeff est : ")
+    print(linReaResult)
+    mini.objective=linReaResult
+    print("Expression de l'objectif après modif de linReaResult: ")
+    print(mini.objective.expression)
+    
+    
+def Validation2(oldmodel):
+    print("linRea du vieux")  
+    print(linReaCoeff(oldmodel))
+    model=oldmodel.copy()
+    print("linRea du nouveau")  
+    print(linReaCoeff(model))
+    nameChange(model,0)
+    print("linRea du nouveau après nameChange")  
+    print(linReaCoeff(model))   
+    
+def Validation3():
+    print(model1.objective.expression)
+    print(mini.objective.expression)
+    print(fusion([mini,model1]).objective.expression)
+    
