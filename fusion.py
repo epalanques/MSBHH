@@ -130,21 +130,8 @@ def fusion(oldModelList):
     for reaction in ObjReactions[1:]:
         temp+=NewModel.reactions.get_by_id(reaction.id).flux_expression
     NewModel.objective = NewModel.problem.Objective(temp)
-    print("\nobjective of the fusion: ")
-    print(NewModel.objective.expression)
     return NewModel
-#%%
-Validation3()
-#%%
 
-#%%
-model1=cobra.io.read_sbml_model("./Models/Actinomyces_georgiae_DSM_6843.xml")
-fusion([model1,model1])
-mini=cobra.test.create_test_model("mini")
-fusionModel=fusion([model1,mini])
-fusionModel.objective.expression
-model1.objective.expression
-mini.objective.expression
 #%%
 def Validation(mini,reaction):
     print("Expression de l'objectif au début: ")

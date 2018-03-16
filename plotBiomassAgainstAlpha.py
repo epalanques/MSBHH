@@ -7,15 +7,15 @@ Compare the value of the biomass of a model with another pre-selected model
 """
 
 from fusion import *
-from changerFluxes import *
+from main1 import *
 import matplotlib.pyplot as plt
 from cobra import *
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
 import pandas as pd
 import cobra.test
+#%%
 
-
-def main(oldModel1,oldModel2,diet,nbPoints=2):
+def main(model1,model2,diet,nbPoints=2):
     '''
     oldModel1,oldModel2 : two cobra.Model object
     diet: path of the file diet.xml containing the diet
@@ -24,33 +24,31 @@ def main(oldModel1,oldModel2,diet,nbPoints=2):
     alphaList=[k/(nbPoints-1) for k in range(nbPoints)]#distributed btw 0 & 1
     biomass1List=[]#will contain biomass values of model1
     biomass2List=[]
-    model1=oldModel1.copy()
-    model2=oldModel2.copy()
-    #On récupère les réactions de biomasses et on modifie le nom comme dans l'algo de fusion:
-    ObjReac1=getBiomassReaction(model1)#ObjReac1 is a cobra reaction
-    ObjReac2=getBiomassReaction(model2)
-    objectiveTransformation(ObjReac1,"0")
-    objectiveTransformation(ObjReac2,"1")
-    print("ObjReac1 = ")
-    print(ObjReac1.id)
     fusionModel=fusion([model1,model2])  
-    print(ObjReac1.metabolites)
-    #set the diet for each models:
+    #Get the good biomass reactions:
+    biomassReactions=getBiomassReactionV2(fusionModel)
+    biomassReac1=biomassReactions[0]
+    biomassReac2=biomassReactions[1]
+    #set the diet 
     changerFluxes(diet,fusionModel)
-    print(fusionModel.reactions.get_by_id(ObjReac1.id))
     #Compute optimal biomass value for the given diet:
     optBiomass1=getOptimalBiomass(diet,model1)
     optBiomass2=getOptimalBiomass(diet,model2)
     #Proceed computation:
     for alpha in alphaList:
-        objectiveModification(fusionModel,ObjReac1,ObjReac2,optBiomass1,optBiomass2,alpha)
+        objectiveModification(fusionModel,biomassReac1,biomassReac2,optBiomass1,optBiomass2,alpha)
+        print("The model's objective is :")
+        print(fusionModel.objective.expression)
         opt=fusionModel.optimize()
-        biomass1List.append(opt.fluxes[ObjReac1.id+"_0"]/optBiomass1) #index added due to
-        #name modification
-        biomass2List.append(opt.fluxes[ObjReac2.id+"_1"]/optBiomass2)
+        biomass1List.append(opt.fluxes[biomassReac1.id]/optBiomass1)
+        biomass2List.append(opt.fluxes[biomassReac2.id]/optBiomass2)
     #Affichage
     AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2)
     
+#%%
+TestOnModelsIJ(8,5,10)
+TestOnModelsIJ(5,8,10)
+#%%
 def getOptimalBiomass(diet,model):    
     changerFluxes(diet,model)
     return model.optimize().f
@@ -63,22 +61,13 @@ def objectiveTransformation(ObjReac,indice):
 
 def objectiveModification(fusionModel,ObjectiveReac1,ObjectiveReac2,optBiomass1,optBiomass2,alpha):
     '''
-    fusionModel: the objective of fusionModel will be set as: alpha*Objective1 + 
-    (1-alpha)*Objective2 
+    fusionModel: the objective of fusionModel will be set as: alpha/optBiomass1*Objective1 + 
+    (1-alpha)/optBiomass2*Objective2 
     Objective1, Objective2 : Cobra Reaction : it should be biomass reactions
     alpha: float 
-    return an objective for a cobra model
     '''
-    objectiveFusion=dict()
-    objectiveFusion[ObjectiveReac1]=alpha/optBiomass1
-    objectiveFusion[ObjectiveReac2]=(1-alpha)/optBiomass2
-    fusionModel.objective=objectiveFusion
-    print("\n Expression de l'objectif: \n ")
-    print(fusionModel.objective.expression)
-    print("\n Expression de la biomass1: \n")
-    print(ObjectiveReac1.id)
-    return fusionModel
-
+    temp = (alpha/optBiomass1)*ObjectiveReac1.flux_expression + ((1-alpha)/optBiomass2)*ObjectiveReac2.flux_expression
+    fusionModel.objective = fusionModel.problem.Objective(temp)
 
 
 
@@ -102,12 +91,12 @@ def AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2):
     plt.xlabel("alpha")
     plt.legend(bbox_to_anchor=(1.05, 1), loc=0, borderaxespad=0.)
     
-
+#%%
 def TestSurMini(alpha):
     mini=cobra.test.create_test_model("mini")
     main(mini,mini,"./Diets/Vegan.xls",2)
     
-def TestOnModelsIJ(i,j):
+def TestOnModelsIJ(i,j,alpha):
     '''
     On utilise une liste de modèle pour parcourir l'ensemble des modèles du répertoire /Models
     La fonction exécute un test du plot sur la diète vegan (la meilleure)
@@ -117,8 +106,8 @@ def TestOnModelsIJ(i,j):
     model2Name="./Models/"+ListOfModels[j][0]
     model1=cobra.io.read_sbml_model(model1Name)
     model2=cobra.io.read_sbml_model(model2Name)
-    main(model1,model2,"./Diets/Vegan.xls",2)
-    
+    main(model1,model2,"./Diets/Vegan.xls",alpha)
+#%%
 
 
 
