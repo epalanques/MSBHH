@@ -29,13 +29,15 @@ def main(oldModel1,oldModel2,diet,nbPoints=2):
     #On récupère les réactions de biomasses et on modifie le nom comme dans l'algo de fusion:
     ObjReac1=getBiomassReaction(model1)#ObjReac1 is a cobra reaction
     ObjReac2=getBiomassReaction(model2)
-    objectiveTransformation(ObjReac1,"test")
-    objectiveTransformation(ObjReac2,"test2")
-    print(ObjReac1.metabolites)
+    objectiveTransformation(ObjReac1,"0")
+    objectiveTransformation(ObjReac2,"1")
+    print("ObjReac1 = ")
+    print(ObjReac1.id)
     fusionModel=fusion([model1,model2])  
     print(ObjReac1.metabolites)
     #set the diet for each models:
     changerFluxes(diet,fusionModel)
+    print(fusionModel.reactions.get_by_id(ObjReac1.id))
     #Compute optimal biomass value for the given diet:
     optBiomass1=getOptimalBiomass(diet,model1)
     optBiomass2=getOptimalBiomass(diet,model2)
@@ -77,11 +79,7 @@ def objectiveModification(fusionModel,ObjectiveReac1,ObjectiveReac2,optBiomass1,
     print(ObjectiveReac1.id)
     return fusionModel
 
-def getBiomassReaction(model):
-    objReactions=linReaCoeff(model)
-    for item in objReactions:#works with only one biomass reaction !
-        reac=item
-    return(reac)
+
 
 
 def AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2):
