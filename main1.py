@@ -1,5 +1,6 @@
 import compara
-
+import pandas
+import cobra
 
 def changerFluxes(diete, modele):
 
@@ -14,7 +15,39 @@ def changerFluxes(diete, modele):
     return modele
 
 
-    
+
+def main1(dietes, models):
+
+    biomasses = []
+    for diete in dietes:
+        matrixLigne = []
+        for modele in models:
+            mod = cobra.io.read_sbml_model(modele) #On lit le modele
+            m = changerFluxes(diete, mod) #On change son flux
+            bm = m.optimize().f #On en obtient la biomasse
+            matrixLigne.append(bm) #On ajoute la biomasse resultant dans une ligne de la matrice
+
+        biomasses.append(matrixLigne) #On ajoute la ligne de la matrice dans la matrice
+
+    #Conversion de la matrice en dataFrame de pandas
+    ## Obtention des noms
+    nomModels = netoyeNoms(dietes)
+    nomDietes = netoyeNoms(models)
+    print(nomModels)
+    print (nomDietes)
+    biomasses = pandas.DataFrame(biomasses, nomDietes, nomModels)
+
+    return biomasses
+
+def netoyeNoms(fixiers):
+    fNetoyes = []
+    for fixier in fixiers:
+        netoye = fixier.split("/")
+        netoye = netoye[-1][:-4]
+        fNetoyes.append(netoye)
+    return fNetoyes
+
+
 def listeDietes():
     diets = []
     for i in range(10):
