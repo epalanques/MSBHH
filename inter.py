@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 import sys
 import main1
 import pandas
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 class Inter(QMainWindow):
@@ -90,7 +90,6 @@ class Inter(QMainWindow):
         for name in fnames[0] :
             l.append(name)       
         self.diets = l
-        print(self.diets)
 
     def activerDict_xls(self):
         self.Dict = True
