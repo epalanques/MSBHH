@@ -5,6 +5,7 @@ Created on Mon Mar  5 10:19:05 2018
 @author: Romain GUEDON
 Compare the value of the biomass of a model with another pre-selected model
 """
+#%% Importations
 
 from fusion import *
 from main1 import *
@@ -13,7 +14,7 @@ from cobra import *
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
 import pandas as pd
 import cobra.test
-#%%
+#%% Main
 
 def main(model1,model2,diet,nbPoints=2):
     '''
@@ -37,34 +38,32 @@ def main(model1,model2,diet,nbPoints=2):
     #Proceed computation:
     for alpha in alphaList:
         objectiveModification(fusionModel,biomassReac1,biomassReac2,optBiomass1,optBiomass2,alpha)
-        print("The model's objective is :")
-        print(fusionModel.objective.expression)
+#        print("The model's objective is :")
+#        print(fusionModel.objective.expression)
         opt=fusionModel.optimize()
         biomass1List.append(opt.fluxes[biomassReac1.id]/optBiomass1)
         biomass2List.append(opt.fluxes[biomassReac2.id]/optBiomass2)
     #Affichage
     AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2)
     
-#%%
-TestOnModelsIJ(8,5,10)
-TestOnModelsIJ(5,8,10)
-#%%
+#%% Sub-functions
+    
 def getOptimalBiomass(diet,model):    
     changerFluxes(diet,model)
     return model.optimize().f
 
-def objectiveTransformation(ObjReac,indice):
-    reactionNameChange(ObjReac,indice)
-    for metab in ObjReac.metabolites:
-        metaboliteNameChange(metab,indice)
+#def objectiveTransformation(ObjReac,indice):
+#    reactionNameChange(ObjReac,indice)
+#    for metab in ObjReac.metabolites:
+#        metaboliteNameChange(metab,indice)
         
 
 def objectiveModification(fusionModel,ObjectiveReac1,ObjectiveReac2,optBiomass1,optBiomass2,alpha):
     '''
     fusionModel: the objective of fusionModel will be set as: alpha/optBiomass1*Objective1 + 
     (1-alpha)/optBiomass2*Objective2 
-    Objective1, Objective2 : Cobra Reaction : it should be biomass reactions
-    alpha: float 
+    ObjectiveReac1, ObjectiveReac2 : Cobra Reaction : it should be the biomass reactions
+    alpha: float (between 0 and 1) 
     '''
     temp = (alpha/optBiomass1)*ObjectiveReac1.flux_expression + ((1-alpha)/optBiomass2)*ObjectiveReac2.flux_expression
     fusionModel.objective = fusionModel.problem.Objective(temp)
@@ -90,24 +89,37 @@ def AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2):
     plt.ylabel("biomass")
     plt.xlabel("alpha")
     plt.legend(bbox_to_anchor=(1.05, 1), loc=0, borderaxespad=0.)
+    plt.show()
     
-#%%
+#%% Test functions
+    
 def TestSurMini(alpha):
     mini=cobra.test.create_test_model("mini")
     main(mini,mini,"./Diets/Vegan.xls",2)
     
-def TestOnModelsIJ(i,j,alpha):
+ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
+ListOfDiets= pd.read_csv("./Diets/listOfDiets.txt", header = None, sep="\n").get_values()
+
+def TestOnModelsIJ(i,j,numDiet,alpha):
     '''
     On utilise une liste de modèle pour parcourir l'ensemble des modèles du répertoire /Models
     La fonction exécute un test du plot sur la diète vegan (la meilleure)
     '''
-    ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
+    diet="./Diets/"+ListOfDiets[numDiet][0]
     model1Name="./Models/"+ListOfModels[i][0]
-    model2Name="./Models/"+ListOfModels[j][0]
+    model2Name="./Models/"+ListOfModels[j][0] 
     model1=cobra.io.read_sbml_model(model1Name)
     model2=cobra.io.read_sbml_model(model2Name)
-    main(model1,model2,"./Diets/Vegan.xls",alpha)
-#%%
+    print("------TEST------- \nmodèle 1 = "+ListOfModels[i][0][:-4]+" et modèle 2 = "+ListOfModels[j][0][:-4]+" avec la diète "
+          +ListOfDiets[numDiet][0][:-4])
+    main(model1,model2,diet,alpha)
+    
+#%% Tests
+
+#Inversion of 2 models in the function: 
+    
+TestOnModelsIJ(8,5,7,2)
+TestOnModelsIJ(5,8,7,2)
 
 
 

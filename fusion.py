@@ -8,6 +8,7 @@ Created on Sun Mar  4 19:20:36 2018
 import cobra.test
 from cobra import Model, Reaction, Metabolite
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
+#%%
 
 def getBiomassReaction(model):
     objReactions=linReaCoeff(model)
@@ -64,7 +65,7 @@ def metaboliteNameChange(metab,indice):
         metab.name=metab.name+"_"+indice
     if type(metab.compartment)==type("string"):
         metab.compartment=metab.compartment+"_"+indice    
-
+#%%
 
 def fusion(oldModelList):
     '''
@@ -133,6 +134,10 @@ def fusion(oldModelList):
     return NewModel
 
 #%%
+    
+mini=cobra.test.create_test_model("mini")
+model1=cobra.test.create_test_model("ecoli")
+
 def Validation(mini,reaction):
     print("Expression de l'objectif au début: ")
     print(mini.objective.expression)

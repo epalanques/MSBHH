@@ -1,0 +1,12 @@
+DACH.xls
+EUaverage.xls
+GF.xls
+HFLC.xls
+HF.xls
+HP.xls
+listOfDiets.txt
+Mediterranean.xls
+T2Diabetes.xls
+Unhealthy.xls
+Vegan.xls
+Vegetarian.xls
