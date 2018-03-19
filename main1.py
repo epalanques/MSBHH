@@ -6,8 +6,8 @@ def changerFluxes(diete, modele):
 
     #On extrait les donnees pour modifier les fluxes
     echDie = compara.echangesDiete(diete)
-    echMod = compara.echangesModele(modele)
-    corr, nonCorDie, nonCorMod = compara.comparerEchanges(echMod, echDie)
+    echMod = compara.echangesModele(modele, "EX")
+    corr, nonCorDie, nonCorMod = compara.comparerEchanges(echMod, echDie,2)
 
     #On change les fluxes
     compara.modifierFluxes(corr)
@@ -35,7 +35,7 @@ def main1(dietes, models):
     nomDietes = netoyeNoms(models)
     print(nomModels)
     print (nomDietes)
-    biomasses = pandas.DataFrame(biomasses, nomDietes, nomModels)
+    biomasses = pandas.DataFrame(biomasses, nomModels, nomDietes)
 
     return biomasses
 
