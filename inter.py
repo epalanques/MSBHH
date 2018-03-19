@@ -90,7 +90,6 @@ class Inter(QMainWindow):
         for name in fnames[0] :
             l.append(name)       
         self.diets = l
-        print(self.diets)
 
     def activerDict_xls(self):
         self.Dict = True
