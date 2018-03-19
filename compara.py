@@ -91,6 +91,7 @@ def comparerEchanges(echangesModele, echangesDiet, lenPref=4):
 
 
 def modifierFluxes(correspondances):
+
     for reactionID in correspondances:
         reaction = correspondances[reactionID][0]
         flux = correspondances[reactionID][1]
