@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 import sys
 import main1
 import pandas
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 class Inter(QMainWindow):

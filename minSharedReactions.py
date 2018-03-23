@@ -15,23 +15,25 @@ def reactionex(model):
       count+=1
   return (l,count)
       
-def rename_1(model):
-  for rec in model.metabolites:
-    rec.id=rec.id+"_1"
-  return model
-  
-def rename_2(model):
-  for rec in model.metabolites:
-    rec.id=rec.id+"_2"
-  return model
+#def rename_1(model):
+#  for rec in model.metabolites:
+#    rec.id=rec.id+"_1"
+#  return model
+#  
+#def rename_2(model):
+#  for rec in model.metabolites:
+#    rec.id=rec.id+"_2"
+#  return model
 
-def compareaction(model1, model2, seuil):
+def compareReactions(model1, model2, seuil):
   #seuil est une nombre de réactions minimales communes pour qu'on puisse considérer que les deux modèles peuvent interagir et méritent une étude plus approfondie
     listecommune=[]
     nb_reactions_communes=0
-    for i in range (len(reactionex(model1)[0])):
-        if reactionex(model1)[0][i] in reactionex(model2)[0]:
-            listecommune.append(reactionex(model1)[0][i])
+    recEx1=reactionex(model1)
+    recEx2=reactionex(model2)
+    for i in range (len(recEx1[0])):
+        if recEx1[0][i] in recEx2[0]:
+            listecommune.append(recEx1[0][i])
             nb_reactions_communes+=1
     if nb_reactions_communes >= seuil :
       return True #les deux modèles peuvent interagir et leur interaction vaut la peine d'être étudiée

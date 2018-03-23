@@ -97,14 +97,15 @@ def TestSurMini(alpha):
     mini=cobra.test.create_test_model("mini")
     main(mini,mini,"./Diets/Vegan.xls",2)
     
-ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
-ListOfDiets= pd.read_csv("./Diets/listOfDiets.txt", header = None, sep="\n").get_values()
+
 
 def TestOnModelsIJ(i,j,numDiet,alpha):
     '''
     On utilise une liste de modèle pour parcourir l'ensemble des modèles du répertoire /Models
     La fonction exécute un test du plot sur la diète vegan (la meilleure)
     '''
+    ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
+    ListOfDiets= pd.read_csv("./Diets/listOfDiets.txt", header = None, sep="\n").get_values()
     diet="./Diets/"+ListOfDiets[numDiet][0]
     model1Name="./Models/"+ListOfModels[i][0]
     model2Name="./Models/"+ListOfModels[j][0] 
@@ -118,8 +119,8 @@ def TestOnModelsIJ(i,j,numDiet,alpha):
 
 #Inversion of 2 models in the function: 
     
-TestOnModelsIJ(8,5,7,2)
-TestOnModelsIJ(5,8,7,2)
+#TestOnModelsIJ(8,5,7,2)
+#TestOnModelsIJ(5,8,7,2)
 
 
 
