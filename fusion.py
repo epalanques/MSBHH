@@ -19,7 +19,7 @@ def getBiomassReaction(model):
 def getBiomassReactionV2(model):
     reactions=[]
     objReactions=linReaCoeff(model)
-    for item in objReactions:#works with only one biomass reaction !
+    for item in objReactions:
         reactions.append(item)
     return reactions
 

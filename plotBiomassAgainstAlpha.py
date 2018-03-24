@@ -14,13 +14,13 @@ from cobra import *
 from cobra.util.solver import linear_reaction_coefficients as linReaCoeff
 import pandas as pd
 import cobra.test
-#%% Main
 
+#%% 
 def main(model1,model2,diet,nbPoints=2):
     '''
     oldModel1,oldModel2 : two cobra.Model object
     diet: path of the file diet.xml containing the diet
-    resolution: number of points 
+    nbPoints: number of points 
     '''
     alphaList=[k/(nbPoints-1) for k in range(nbPoints)]#distributed btw 0 & 1
     biomass1List=[]#will contain biomass values of model1
@@ -45,6 +45,8 @@ def main(model1,model2,diet,nbPoints=2):
         biomass2List.append(opt.fluxes[biomassReac2.id]/optBiomass2)
     #Affichage
     AffichagePropre(alphaList,biomass1List,biomass2List,model1,model2)
+#%%
+    
     
 #%% Sub-functions
     

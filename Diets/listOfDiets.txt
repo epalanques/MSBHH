@@ -4,7 +4,6 @@ GF.xls
 HFLC.xls
 HF.xls
 HP.xls
-listOfDiets.txt
 Mediterranean.xls
 T2Diabetes.xls
 Unhealthy.xls
