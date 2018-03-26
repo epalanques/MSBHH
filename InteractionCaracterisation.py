@@ -69,20 +69,20 @@ def plot(model1,model2):
     plt.figure(figsize = (14,7))
     plt.scatter(nameOfDiets,biomass1List, label="biomass relative of model 1 \n("+nameModel1+")",marker='x',color='r')
     plt.scatter(nameOfDiets,biomass2List, label="biomass relative of model 2 \n("+nameModel2+")",marker='x',color='b')
-    plotLine(0.5, nameOfDiets)
+    plotLine(0.5,2, nameOfDiets)
     plt.title("Biomasse relative des organismes en fonction de la diète")
     plt.ylabel("Biomasse relative")
     plt.yscale('log')
     plt.legend(bbox_to_anchor=(0.5, -0.4), loc=8, borderaxespad=0.)
     plt.show()
     
-def plotLine(h, d):
-    plt.plot((min(d), max(d)), (0.5, 0.5), 'k:', label = None)
+def plotLine(h1,h2, d):
+    plt.plot((min(d), max(d)), (h1, h1), 'k:', label = None)
+    plt.plot((min(d), max(d)), (h2, h2), 'k:', label = None)
 
     
 #%%
 def TestSurIJCarac(i,j):
-    s = time.time()
     ListOfModels= pd.read_csv("./Models/listofmodel.txt", sep="\n", header=None).get_values()
     ListOfDiets= pd.read_csv("./Diets/listOfDiets.txt", header = None, sep="\n").get_values()
     model1Name="./Models/"+ListOfModels[i][0]
@@ -90,9 +90,15 @@ def TestSurIJCarac(i,j):
     model1=cobra.io.read_sbml_model(model1Name)
     model2=cobra.io.read_sbml_model(model2Name)
     print("------TEST------- \nmodèle 1 = "+ListOfModels[i][0][:-4]+" et modèle 2 = "+ListOfModels[j][0][:-4])
-    print(round(time.time() - s, 2))
-    s = time.time()
     caracterisation(model1,model2,2)
-    print(round(time.time() - s, 2))
 TestSurIJCarac(5,6)
-
+#%%
+def TestCarac_Ecoli_Salmo():
+    model1=cobra.test.create_test_model("salmonella")
+    model1.name="Salmonelle"
+    model2=cobra.test.create_test_model("ecoli")
+    model2.name="Escherichia Coli"
+    print("------TEST------- \nmodèle 1 = Salmonelle et modèle 2 = Escherichia Coli")
+    caracterisation(model1,model2,10)
+#%% 
+TestCarac_Ecoli_Salmo()
